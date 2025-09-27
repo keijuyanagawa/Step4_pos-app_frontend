@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "npx next start"
+    "start": "next start",
+    "postinstall": "next build --turbopack"
   },
   "dependencies": {
     "react": "19.1.0",
