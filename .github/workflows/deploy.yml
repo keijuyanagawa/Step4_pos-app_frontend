@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 env:
-  AZURE_WEBAPP_NAME: 'your-nextjs-app-name' # ご自身のNext.js用App Service名
+  AZURE_WEBAPP_NAME: 'app-002-gen10-step3-1-node-oshima36' # ご自身のNext.js用App Service名
   NODE_VERSION: '20.x'
 
 jobs:
