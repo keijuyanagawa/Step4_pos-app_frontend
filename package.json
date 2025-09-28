@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start"
+    "build": "cd /home/site/wwwroot && next build --turbopack",
+    "start": "cd /home/site/wwwroot && next start"
   },
   "dependencies": {
     "react": "19.1.0",
