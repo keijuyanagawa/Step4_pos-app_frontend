@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "build": "next build --turbopack", 
     "start": "next start",
-    "build:azure": "cd /home/site/wwwroot && next build --turbopack",
-    "start:azure": "cd /home/site/wwwroot && next start"
+    "build:azure": "npx next build --turbopack",
+    "start:azure": "npx next start"
   },
   "dependencies": {
     "react": "19.1.0",
