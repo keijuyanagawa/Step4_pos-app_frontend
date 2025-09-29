@@ -1,0 +1,17 @@
+{
+  "store_code": "STORE001",
+  "pos_machine_id": "POS01",
+  "store_name": "テックワン ポップアップストア",
+  "api_endpoints": {
+    "login": "/api/auth/login",
+    "product_search": "/api/products",
+    "purchase": "/api/purchase",
+    "health": "/api/health"
+  },
+  "ui_settings": {
+    "auto_logout_minutes": 30,
+    "barcode_scan_timeout_seconds": 10,
+    "currency": "¥",
+    "decimal_places": 0
+  }
+}
