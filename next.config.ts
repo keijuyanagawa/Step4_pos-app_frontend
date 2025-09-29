@@ -1,7 +1,7 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  serverExternalPackages: [],
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // これを追加！
+  output: 'standalone',
 };
 
-export default nextConfig;
+module.exports = nextConfig; 
