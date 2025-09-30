@@ -3,13 +3,10 @@ name: Deploy Next.js to Azure App Service
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 env:
   AZURE_WEBAPP_NAME: 'app-002-gen10-step3-1-node-oshima36'
   NODE_VERSION: '20.x'
-  AZURE_RESOURCE_GROUP: 'your-resource-group-name'  # 管理者に確認してください
 
 jobs:
   build-and-deploy:
@@ -30,26 +27,9 @@ jobs:
       - name: Build application
         run: npm run build
 
-      # 方法1: Publish Profileを使用（推奨）
-      - name: Deploy to Azure App Service (Publish Profile)
-        if: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+      - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: '.'
-
-      # 方法2: Service Principalを使用（代替案）
-      - name: Azure Login (Service Principal)
-        if: ${{ !secrets.AZURE_WEBAPP_PUBLISH_PROFILE && secrets.AZURE_CREDENTIALS }}
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Deploy to Azure App Service (Service Principal)
-        if: ${{ !secrets.AZURE_WEBAPP_PUBLISH_PROFILE && secrets.AZURE_CREDENTIALS }}
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          resource-group-name: ${{ env.AZURE_RESOURCE_GROUP }}
           package: '.'
