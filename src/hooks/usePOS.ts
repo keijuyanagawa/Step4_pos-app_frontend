@@ -245,3 +245,4 @@ export const usePOS = () => {
     setError,
   };
 };
+

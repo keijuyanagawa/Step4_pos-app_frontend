@@ -33,6 +33,8 @@ jobs:
       - name: Build application
         run: npm run build
         timeout-minutes: 5
+        env:
+          NEXT_PUBLIC_API_URL: https://app-002-gen10-step3-1-py-oshima36.azurewebsites.net
 
       - name: Copy standalone files
         run: |

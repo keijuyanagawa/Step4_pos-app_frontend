@@ -104,3 +104,4 @@ export default function LoginForm({ onLogin, isLoading, error }: LoginFormProps)
     </div>
   );
 }
+

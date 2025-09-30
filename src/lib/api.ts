@@ -114,3 +114,4 @@ export class POSApi {
     return response.json();
   }
 }
+

@@ -30,3 +30,4 @@ export const buildApiEndpoint = (endpoint: keyof POSConfig['api_endpoints']) => 
   const config = getConfig();
   return `${getApiUrl()}${config.api_endpoints[endpoint]}`;
 };
+
