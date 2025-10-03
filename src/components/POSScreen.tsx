@@ -51,10 +51,21 @@ export default function POSScreen({
   };
 
   const handleBarcodeDetected = async (detectedBarcode: string) => {
-    console.log('Barcode detected:', detectedBarcode);
-    const product = await searchProduct(detectedBarcode);
-    if (product) {
-      addToCart(product);
+    console.log('=== Starting Product Search ===');
+    console.log('Barcode value:', detectedBarcode);
+    console.log('Barcode length:', detectedBarcode.length);
+    console.log('Barcode characters:', detectedBarcode.split('').map((c, i) => `${i}:${c}(${c.charCodeAt(0)})`).join(' '));
+    
+    try {
+      const product = await searchProduct(detectedBarcode);
+      if (product) {
+        console.log('Product found:', product);
+        addToCart(product);
+      }
+    } catch (error) {
+      console.error('Product search error:', error);
+      // エラー時にバーコード値を表示
+      setError(`商品が見つかりません (バーコード: ${detectedBarcode})`);
     }
   };
 

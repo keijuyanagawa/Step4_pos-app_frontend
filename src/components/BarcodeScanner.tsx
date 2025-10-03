@@ -1,7 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
+import { 
+  BrowserMultiFormatReader, 
+  NotFoundException,
+  DecodeHintType,
+  BarcodeFormat
+} from '@zxing/library';
 
 interface BarcodeScannerProps {
   onDetected: (barcode: string) => void;
@@ -13,6 +18,7 @@ export default function BarcodeScanner({ onDetected, onClose, isOpen }: BarcodeS
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [lastScannedBarcode, setLastScannedBarcode] = useState<string | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -36,8 +42,20 @@ export default function BarcodeScanner({ onDetected, onClose, isOpen }: BarcodeS
       setError(null);
       setIsScanning(true);
 
-      // ZXingのリーダー初期化
-      const codeReader = new BrowserMultiFormatReader();
+      // ZXingのリーダー初期化（ヒントを設定して読み取り精度を向上）
+      const hints = new Map();
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+        BarcodeFormat.EAN_13,        // JANコード（標準）
+        BarcodeFormat.EAN_8,         // JANコード（短縮版）
+        BarcodeFormat.CODE_128,      // CODE128
+        BarcodeFormat.CODE_39,       // CODE39
+        BarcodeFormat.UPC_A,         // UPCコード
+        BarcodeFormat.UPC_E,         // UPCコード（短縮版）
+        BarcodeFormat.QR_CODE,       // QRコード
+      ]);
+      hints.set(DecodeHintType.TRY_HARDER, true); // より正確にスキャン
+
+      const codeReader = new BrowserMultiFormatReader(hints);
       readerRef.current = codeReader;
 
       // 利用可能なカメラデバイスを取得
@@ -60,8 +78,16 @@ export default function BarcodeScanner({ onDetected, onClose, isOpen }: BarcodeS
         (result, error) => {
           if (result) {
             // バーコード検出成功
-            const barcodeText = result.getText();
-            console.log('Barcode detected:', barcodeText);
+            const barcodeText = result.getText().trim(); // 前後の空白を削除
+            console.log('=== Barcode Scan Success ===');
+            console.log('Raw value:', result.getText());
+            console.log('Trimmed value:', barcodeText);
+            console.log('Barcode format:', result.getBarcodeFormat());
+            console.log('Length:', barcodeText.length);
+            console.log('===========================');
+            
+            // スキャンしたバーコードを表示
+            setLastScannedBarcode(barcodeText);
             
             // 検出したバーコードを親コンポーネントに通知
             onDetected(barcodeText);
@@ -184,10 +210,16 @@ export default function BarcodeScanner({ onDetected, onClose, isOpen }: BarcodeS
               </div>
 
               {/* 説明テキスト */}
-              <div className="absolute bottom-8 left-0 right-0 text-center">
-                <p className="text-white text-lg font-semibold bg-black bg-opacity-60 py-2 px-4 rounded-full inline-block">
+              <div className="absolute bottom-8 left-0 right-0 text-center px-4">
+                <p className="text-white text-lg font-semibold bg-black bg-opacity-60 py-2 px-4 rounded-full inline-block mb-2">
                   バーコードを枠内に合わせてください
                 </p>
+                {/* デバッグ用：最後にスキャンしたバーコード値を表示 */}
+                {lastScannedBarcode && (
+                  <div className="text-yellow-300 text-sm bg-black bg-opacity-80 py-2 px-4 rounded-lg inline-block">
+                    検出: {lastScannedBarcode}
+                  </div>
+                )}
               </div>
             </>
           )}
