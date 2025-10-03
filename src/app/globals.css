@@ -1,8 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* POS システムのカラーパレット（ダークテーマ） */
+  --background: #1a1d29;
+  --foreground: #ffffff;
+  --background-darker: #0f1117;
+  --card-background: #252936;
+  --card-background-light: #2d3142;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --error: #dc2626;
+  --error-bg: #7f1d1d;
+  --success: #10b981;
+  --border-color: #3f4557;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
 }
 
 @theme inline {
@@ -10,13 +22,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {

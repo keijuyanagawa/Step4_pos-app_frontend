@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { POSState, usePOS } from '@/hooks/usePOS';
+import { POSState } from '@/hooks/usePOS';
 import { getConfig } from '@/lib/config';
 import { ProductResponse, PurchaseResponse, CartItem } from '@/lib/api';
 import BarcodeScanner from './BarcodeScanner';
@@ -46,12 +46,10 @@ export default function POSScreen({
     }
   };
 
-  // カメラスキャンボタンのハンドラ
   const handleOpenScanner = () => {
     setShowScanner(true);
   };
 
-  // バーコード検出時のハンドラ
   const handleBarcodeDetected = async (detectedBarcode: string) => {
     console.log('Barcode detected:', detectedBarcode);
     const product = await searchProduct(detectedBarcode);
@@ -72,140 +70,167 @@ export default function POSScreen({
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#1a1d29' }}>
       {/* ヘッダー */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="px-4 py-3 flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">{config.store_name}</h1>
-            <p className="text-sm text-gray-500">
-              担当者: {posState.cashierName} | POS機: {config.pos_machine_id}
-            </p>
-          </div>
-          <button
-            onClick={logout}
-            className="px-4 py-2 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
-          >
-            ログアウト
-          </button>
-        </div>
+      <header 
+        className="border-b px-4 py-3 flex justify-between items-center"
+        style={{ 
+          backgroundColor: '#252936',
+          borderColor: '#3f4557'
+        }}
+      >
+        <h1 className="text-xl font-bold text-white">
+          担当者: {posState.cashierName}
+        </h1>
+        <button className="text-gray-400 hover:text-gray-200 text-2xl">
+          ⚙️
+        </button>
       </header>
 
-      <div className="flex flex-1">
-        {/* 左側: 商品スキャン・検索エリア */}
-        <div className="flex-1 p-6">
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-lg font-semibold mb-4">商品スキャン</h2>
-            
-            <form onSubmit={handleBarcodeSubmit} className="mb-4">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={barcode}
-                  onChange={(e) => setBarcode(e.target.value)}
-                  placeholder="バーコードを入力してください"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={posState.isLoading}
-                />
-                <button
-                  type="submit"
-                  disabled={posState.isLoading || !barcode.trim()}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {posState.isLoading ? '検索中...' : '検索'}
-                </button>
-              </div>
-            </form>
+      {/* メインコンテンツエリア */}
+      <div className="flex-1 overflow-y-auto pb-24">
+        {/* 商品検索エリア */}
+        <div className="p-4">
+          <h2 className="text-xl font-semibold text-white mb-4">商品検索</h2>
+          
+          {/* 検索フォーム */}
+          <form onSubmit={handleBarcodeSubmit} className="mb-4">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={barcode}
+                onChange={(e) => setBarcode(e.target.value)}
+                placeholder="商品名またはバーコードを入力"
+                style={{ 
+                  backgroundColor: '#252936',
+                  borderColor: '#3f4557',
+                  color: '#ffffff'
+                }}
+                className="flex-1 px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={posState.isLoading}
+              />
+              <button
+                onClick={handleOpenScanner}
+                type="button"
+                className="p-3 rounded-lg text-white text-2xl"
+                style={{ backgroundColor: '#2563eb' }}
+                disabled={posState.isLoading}
+              >
+                📷
+              </button>
+            </div>
+          </form>
 
-            {/* カメラスキャンボタン */}
-            <button
-              onClick={handleOpenScanner}
-              className="w-full py-3 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
-              disabled={posState.isLoading}
+          {/* 検索された商品の表示 */}
+          {posState.lastScannedProduct && (
+            <div 
+              className="p-4 rounded-lg flex items-center gap-4 mb-4"
+              style={{ backgroundColor: '#252936' }}
             >
-              📷 カメラでスキャン
-            </button>
-
-            {/* エラーメッセージ */}
-            {posState.error && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-red-700 text-sm">{posState.error}</p>
-                <button
-                  onClick={() => setError(null)}
-                  className="mt-2 text-red-600 hover:text-red-800 text-xs"
-                >
-                  ✕ 閉じる
-                </button>
+              <div 
+                className="w-20 h-20 rounded-lg flex items-center justify-center text-4xl"
+                style={{ backgroundColor: '#3f4557' }}
+              >
+                👕
               </div>
-            )}
-
-            {/* 最後にスキャンした商品 */}
-            {posState.lastScannedProduct && (
-              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-                <h3 className="font-semibold text-green-800">商品が見つかりました</h3>
-                <p className="text-green-700">{posState.lastScannedProduct.product_name}</p>
-                <p className="text-green-600">
-                  {config.ui_settings.currency}{posState.lastScannedProduct.price_incl_tax.toLocaleString()}
-                  （税込）
-                </p>
+              <div className="flex-1">
+                <h3 className="font-semibold text-white">{posState.lastScannedProduct.product_name}</h3>
+                <p className="text-lg text-white">¥{posState.lastScannedProduct.price_incl_tax.toLocaleString()}</p>
               </div>
-            )}
-          </div>
+              <button
+                onClick={() => addToCart(posState.lastScannedProduct!)}
+                className="px-6 py-2 rounded-lg text-white font-semibold"
+                style={{ backgroundColor: '#2563eb' }}
+              >
+                追加
+              </button>
+            </div>
+          )}
+
+          {/* エラーメッセージ */}
+          {posState.error && (
+            <div 
+              className="p-3 rounded-lg mb-4"
+              style={{ backgroundColor: '#7f1d1d' }}
+            >
+              <p className="text-red-200 text-sm">エラー: {posState.error}</p>
+            </div>
+          )}
         </div>
 
-        {/* 右側: カート・会計エリア */}
-        <div className="w-96 bg-white shadow-lg p-6">
-          <h2 className="text-lg font-semibold mb-4">購入リスト</h2>
+        {/* カートエリア */}
+        <div className="px-4">
+          <h2 className="text-xl font-semibold text-white mb-4">カート</h2>
           
-          {/* カート商品一覧 */}
-          <div className="mb-6 max-h-96 overflow-y-auto">
-            {posState.cartItems.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">商品をスキャンしてください</p>
-            ) : (
-              <div className="space-y-2">
-                {posState.cartItems.map((item) => (
-                  <CartItemRow
-                    key={item.barcode}
-                    item={item}
-                    onUpdateQuantity={updateCartItemQuantity}
-                    onRemove={removeFromCart}
-                    currency={config.ui_settings.currency}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* 合計金額 */}
-          {posState.cartItems.length > 0 && (
-            <>
-              <div className="border-t pt-4 mb-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>小計（税抜）:</span>
-                  <span>{config.ui_settings.currency}{totals.totalExclTax.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>消費税:</span>
-                  <span>{config.ui_settings.currency}{totals.totalTax.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold">
-                  <span>合計:</span>
-                  <span>{config.ui_settings.currency}{totals.totalInclTax.toLocaleString()}</span>
-                </div>
-                <div className="text-sm text-gray-500">
-                  商品数: {totals.itemCount}点
-                </div>
-              </div>
-
-              <button
-                onClick={handlePurchase}
-                disabled={posState.isLoading}
-                className="w-full py-3 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 font-semibold"
-              >
-                {posState.isLoading ? '処理中...' : '購入'}
-              </button>
-            </>
+          {posState.cartItems.length === 0 ? (
+            <p className="text-gray-400 text-center py-8">商品をスキャンしてください</p>
+          ) : (
+            <div className="space-y-3">
+              {posState.cartItems.map((item) => (
+                <CartItemRow
+                  key={item.barcode}
+                  item={item}
+                  onUpdateQuantity={updateCartItemQuantity}
+                  onRemove={removeFromCart}
+                  currency={config.ui_settings.currency}
+                />
+              ))}
+            </div>
           )}
+        </div>
+      </div>
+
+      {/* 合計と購入ボタン（固定） */}
+      {posState.cartItems.length > 0 && (
+        <div 
+          className="fixed bottom-16 left-0 right-0 border-t p-4"
+          style={{ 
+            backgroundColor: '#252936',
+            borderColor: '#3f4557'
+          }}
+        >
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-lg font-semibold text-white">合計</span>
+            <span className="text-2xl font-bold text-white">
+              {config.ui_settings.currency}{totals.totalInclTax.toLocaleString()}
+            </span>
+          </div>
+          <button
+            onClick={handlePurchase}
+            disabled={posState.isLoading}
+            className="w-full py-3 rounded-lg text-white font-semibold text-lg"
+            style={{ backgroundColor: '#2563eb' }}
+          >
+            {posState.isLoading ? '処理中...' : '購入'}
+          </button>
+        </div>
+      )}
+
+      {/* 底部ナビゲーションバー */}
+      <div 
+        className="fixed bottom-0 left-0 right-0 border-t"
+        style={{ 
+          backgroundColor: '#252936',
+          borderColor: '#3f4557'
+        }}
+      >
+        <div className="flex justify-around items-center py-3">
+          <button className="flex flex-col items-center gap-1 px-4 py-2">
+            <span className="text-2xl" style={{ color: '#6b7280' }}>🏠</span>
+            <span className="text-xs" style={{ color: '#6b7280' }}>ホーム</span>
+          </button>
+          <button className="flex flex-col items-center gap-1 px-4 py-2">
+            <span className="text-2xl" style={{ color: '#2563eb' }}>🔍</span>
+            <span className="text-xs" style={{ color: '#2563eb' }}>商品検索</span>
+          </button>
+          <button className="flex flex-col items-center gap-1 px-4 py-2">
+            <span className="text-2xl" style={{ color: '#6b7280' }}>📄</span>
+            <span className="text-xs" style={{ color: '#6b7280' }}>売上</span>
+          </button>
+          <button className="flex flex-col items-center gap-1 px-4 py-2">
+            <span className="text-2xl" style={{ color: '#6b7280' }}>⚙️</span>
+            <span className="text-xs" style={{ color: '#6b7280' }}>設定</span>
+          </button>
         </div>
       </div>
 
@@ -241,43 +266,51 @@ function CartItemRow({
   currency: string;
 }) {
   return (
-    <div className="p-3 border border-gray-200 rounded-md">
-      <div className="flex justify-between items-start mb-2">
-        <h4 className="font-medium text-sm">{item.product_name}</h4>
+    <div 
+      className="p-4 rounded-lg flex items-center gap-3"
+      style={{ backgroundColor: '#252936' }}
+    >
+      {/* 商品名と単価 */}
+      <div className="flex-1">
+        <h4 className="font-medium text-white text-sm mb-1">{item.product_name}</h4>
+        <p className="text-xs" style={{ color: '#9ca3af' }}>
+          {currency}{item.unit_price.toLocaleString()}
+        </p>
+      </div>
+
+      {/* 数量調整ボタン */}
+      <div className="flex items-center gap-2">
         <button
-          onClick={() => onRemove(item.barcode)}
-          className="text-red-500 hover:text-red-700 text-xs"
+          onClick={() => onUpdateQuantity(item.barcode, item.quantity - 1)}
+          className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
+          style={{ backgroundColor: '#3f4557' }}
         >
-          削除
+          -
+        </button>
+        <span className="w-8 text-center text-white font-semibold">{item.quantity}</span>
+        <button
+          onClick={() => onUpdateQuantity(item.barcode, item.quantity + 1)}
+          className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold"
+          style={{ backgroundColor: '#3f4557' }}
+        >
+          +
         </button>
       </div>
-      
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onUpdateQuantity(item.barcode, item.quantity - 1)}
-            className="w-6 h-6 bg-gray-200 rounded text-xs hover:bg-gray-300"
-          >
-            -
-          </button>
-          <span className="w-8 text-center text-sm">{item.quantity}</span>
-          <button
-            onClick={() => onUpdateQuantity(item.barcode, item.quantity + 1)}
-            className="w-6 h-6 bg-gray-200 rounded text-xs hover:bg-gray-300"
-          >
-            +
-          </button>
-        </div>
-        
-        <div className="text-right">
-          <div className="text-sm font-medium">
-            {currency}{item.subtotal_incl_tax.toLocaleString()}
-          </div>
-          <div className="text-xs text-gray-500">
-            @{currency}{item.unit_price.toLocaleString()}
-          </div>
+
+      {/* 合計金額 */}
+      <div className="text-right w-20">
+        <div className="text-base font-semibold text-white">
+          {currency}{item.subtotal_incl_tax.toLocaleString()}
         </div>
       </div>
+
+      {/* 削除ボタン */}
+      <button
+        onClick={() => onRemove(item.barcode)}
+        className="text-gray-400 hover:text-red-400 text-xl"
+      >
+        🗑️
+      </button>
     </div>
   );
 }
@@ -293,31 +326,43 @@ function PurchaseResultModal({
   currency: string;
 }) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-lg max-w-md w-full mx-4">
+    <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}>
+      <div 
+        className="p-8 rounded-lg max-w-md w-full mx-4"
+        style={{ backgroundColor: '#252936' }}
+      >
         <div className="text-center">
-          <div className="text-6xl mb-4">✅</div>
-          <h2 className="text-2xl font-bold mb-4 text-green-600">購入完了</h2>
+          {/* チェックアイコン */}
+          <div className="flex justify-center mb-4">
+            <div 
+              className="w-20 h-20 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: '#2563eb' }}
+            >
+              <span className="text-white text-4xl">✓</span>
+            </div>
+          </div>
+
+          <h2 className="text-2xl font-bold mb-6 text-white">購入が完了しました</h2>
           
-          <div className="space-y-2 mb-6">
-            <p className="text-lg">
-              <span className="font-semibold">合計金額（税込）:</span><br />
-              <span className="text-2xl font-bold text-green-600">
+          <div className="space-y-3 mb-6">
+            <div className="flex justify-between text-base" style={{ color: '#9ca3af' }}>
+              <span>合計金額（税込）</span>
+              <span className="text-white font-semibold">
                 {currency}{result.total_amount_incl_tax?.toLocaleString()}
               </span>
-            </p>
-            <p className="text-sm text-gray-600">
-              税抜: {currency}{result.total_amount_excl_tax?.toLocaleString()}<br />
-              消費税: {currency}{result.total_tax_amount?.toLocaleString()}
-            </p>
-            <p className="text-xs text-gray-500">
-              取引ID: {result.transaction_id}
-            </p>
+            </div>
+            <div className="flex justify-between text-base" style={{ color: '#9ca3af' }}>
+              <span>合計金額（税抜）</span>
+              <span className="text-white font-semibold">
+                {currency}{result.total_amount_excl_tax?.toLocaleString()}
+              </span>
+            </div>
           </div>
           
           <button
             onClick={onClose}
-            className="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold"
+            className="w-full py-3 rounded-lg text-white font-semibold text-lg"
+            style={{ backgroundColor: '#2563eb' }}
           >
             OK
           </button>
@@ -326,6 +371,3 @@ function PurchaseResultModal({
     </div>
   );
 }
-
-
-
