@@ -19,6 +19,7 @@ export default function BarcodeScanner({ onDetected, onClose, isOpen }: BarcodeS
   const [error, setError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [lastScannedBarcode, setLastScannedBarcode] = useState<string | null>(null);
+  const [scanAttempts, setScanAttempts] = useState(0);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -32,6 +33,8 @@ export default function BarcodeScanner({ onDetected, onClose, isOpen }: BarcodeS
       readerRef.current.reset();
     }
     setIsScanning(false);
+    setScanAttempts(0);
+    setLastScannedBarcode(null);
   };
 
   // カメラスキャン開始
@@ -44,19 +47,32 @@ export default function BarcodeScanner({ onDetected, onClose, isOpen }: BarcodeS
 
       // ZXingのリーダー初期化（ヒントを設定して読み取り精度を向上）
       const hints = new Map();
+      
+      // より多くのフォーマットを試す
       hints.set(DecodeHintType.POSSIBLE_FORMATS, [
         BarcodeFormat.EAN_13,        // JANコード（標準）
         BarcodeFormat.EAN_8,         // JANコード（短縮版）
-        BarcodeFormat.CODE_128,      // CODE128
-        BarcodeFormat.CODE_39,       // CODE39
         BarcodeFormat.UPC_A,         // UPCコード
         BarcodeFormat.UPC_E,         // UPCコード（短縮版）
+        BarcodeFormat.CODE_128,      // CODE128
+        BarcodeFormat.CODE_39,       // CODE39
+        BarcodeFormat.CODE_93,       // CODE93
+        BarcodeFormat.ITF,           // ITF
+        BarcodeFormat.CODABAR,       // CODABAR
         BarcodeFormat.QR_CODE,       // QRコード
       ]);
-      hints.set(DecodeHintType.TRY_HARDER, true); // より正確にスキャン
+      
+      // より積極的なスキャン設定
+      hints.set(DecodeHintType.TRY_HARDER, true);
+      hints.set(DecodeHintType.ASSUME_GS1, false);
+      
+      // 精度より速度を優先する設定も試す
+      // hints.set(DecodeHintType.PURE_BARCODE, false);
 
       const codeReader = new BrowserMultiFormatReader(hints);
       readerRef.current = codeReader;
+      
+      console.log('Initialized barcode reader with enhanced settings');
 
       // 利用可能なカメラデバイスを取得
       const videoInputDevices = await codeReader.listVideoInputDevices();
@@ -71,15 +87,66 @@ export default function BarcodeScanner({ onDetected, onClose, isOpen }: BarcodeS
         device.label.toLowerCase().includes('rear')
       ) || videoInputDevices[0];
 
+      console.log('Selected camera:', selectedDevice.label);
+
+      // カメラストリームを高解像度・オートフォーカス有効で取得
+      // より認識しやすい設定に変更
+      const constraints: MediaStreamConstraints = {
+        video: {
+          deviceId: selectedDevice.deviceId,
+          width: { ideal: 1920, min: 640 },  // 最低解像度を下げて互換性向上
+          height: { ideal: 1080, min: 480 },
+          focusMode: 'continuous',
+          aspectRatio: { ideal: 16/9 },
+          frameRate: { ideal: 30, min: 15 }  // フレームレートを指定
+        } as any
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+        await videoRef.current.play();
+        
+        console.log('Camera stream started');
+        console.log('Video dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
+        
+        // カメラの設定を取得して表示
+        const videoTrack = stream.getVideoTracks()[0];
+        const settings = videoTrack.getSettings();
+        console.log('Camera settings:', {
+          width: settings.width,
+          height: settings.height,
+          frameRate: settings.frameRate,
+          facingMode: settings.facingMode
+        });
+      }
+
+      // スキャン試行カウンター（デバッグ用）
+      let scanAttempts = 0;
+      const startTime = Date.now();
+
       // バーコードスキャン開始
       await codeReader.decodeFromVideoDevice(
         selectedDevice.deviceId,
         videoRef.current,
         (result, error) => {
+          scanAttempts++;
+          setScanAttempts(scanAttempts); // UIに表示するため
+          
+          // 5秒ごとにスキャン状況をログ出力
+          if (scanAttempts % 50 === 0) {
+            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+            console.log(`Scanning... (${scanAttempts} attempts, ${elapsed}s elapsed)`);
+          }
+
           if (result) {
             // バーコード検出成功
             const barcodeText = result.getText().trim(); // 前後の空白を削除
             console.log('=== Barcode Scan Success ===');
+            console.log('Scan attempts:', scanAttempts);
+            console.log('Time elapsed:', ((Date.now() - startTime) / 1000).toFixed(1), 'seconds');
             console.log('Raw value:', result.getText());
             console.log('Trimmed value:', barcodeText);
             console.log('Barcode format:', result.getBarcodeFormat());
@@ -209,11 +276,32 @@ export default function BarcodeScanner({ onDetected, onClose, isOpen }: BarcodeS
                 </div>
               </div>
 
-              {/* 説明テキスト */}
-              <div className="absolute bottom-8 left-0 right-0 text-center px-4">
-                <p className="text-white text-lg font-semibold bg-black bg-opacity-60 py-2 px-4 rounded-full inline-block mb-2">
+              {/* 説明テキストとヘルプ */}
+              <div className="absolute bottom-8 left-0 right-0 text-center px-4 space-y-2">
+                <p className="text-white text-lg font-semibold bg-black bg-opacity-60 py-2 px-4 rounded-full inline-block">
                   バーコードを枠内に合わせてください
                 </p>
+                
+                {/* スキャン試行回数とヘルプ */}
+                {scanAttempts > 0 && (
+                  <div className="space-y-1">
+                    <div className="text-green-300 text-xs bg-black bg-opacity-80 py-1 px-3 rounded-lg inline-block">
+                      スキャン中... ({scanAttempts} 回試行)
+                    </div>
+                    
+                    {/* 100回以上試行してもダメな場合のヘルプ */}
+                    {scanAttempts > 100 && (
+                      <div className="text-yellow-200 text-xs bg-red-900 bg-opacity-80 py-2 px-4 rounded-lg inline-block max-w-sm">
+                        <p className="font-semibold mb-1">💡 認識のコツ:</p>
+                        <p>• バーコードから15-20cm離す</p>
+                        <p>• バーコードを水平に保つ</p>
+                        <p>• 明るい場所でスキャン</p>
+                        <p>• ゆっくり動かす</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 {/* デバッグ用：最後にスキャンしたバーコード値を表示 */}
                 {lastScannedBarcode && (
                   <div className="text-yellow-300 text-sm bg-black bg-opacity-80 py-2 px-4 rounded-lg inline-block">
@@ -232,9 +320,9 @@ export default function BarcodeScanner({ onDetected, onClose, isOpen }: BarcodeS
               stopScanning();
               onClose();
             }}
-            className="text-blue-600 hover:text-blue-800 text-sm"
+            className="text-blue-600 hover:text-blue-800 text-sm font-semibold"
           >
-            手入力モードに戻る
+            {scanAttempts > 100 ? '📝 手入力で入力する' : '✕ キャンセル（手入力に戻る）'}
           </button>
         </div>
       </div>

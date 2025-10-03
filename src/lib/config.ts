@@ -23,7 +23,25 @@ export const getConfig = (): POSConfig => {
 };
 
 export const getApiUrl = () => {
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  // 環境変数が設定されている場合はそれを使用
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  
+  // ローカル開発環境の場合
+  // ブラウザ環境でのみ window にアクセス
+  if (typeof window !== 'undefined') {
+    // フロントエンドがHTTPSの場合、バックエンドもHTTPSを試みる
+    // （ただし、通常はHTTPで動作する）
+    const protocol = window.location.protocol;
+    if (protocol === 'https:') {
+      // HTTPSの場合でも、ローカルバックエンドはHTTPで動作する可能性が高いため
+      // CORSで許可されていればHTTPでもアクセス可能
+      return 'http://localhost:8000';
+    }
+  }
+  
+  return 'http://localhost:8000';
 };
 
 export const buildApiEndpoint = (endpoint: keyof POSConfig['api_endpoints']) => {
