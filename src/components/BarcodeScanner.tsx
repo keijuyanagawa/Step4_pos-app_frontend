@@ -228,3 +228,4 @@ export default function BarcodeScanner({ onDetected, onClose, isOpen }: BarcodeS
   );
 }
 
+
