@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { POSState, usePOS } from '@/hooks/usePOS';
 import { getConfig } from '@/lib/config';
 import { ProductResponse, PurchaseResponse, CartItem } from '@/lib/api';
+import BarcodeScanner from './BarcodeScanner';
 
 interface POSScreenProps {
   posState: POSState;
@@ -30,6 +31,7 @@ export default function POSScreen({
 }: POSScreenProps) {
   const [barcode, setBarcode] = useState('');
   const [showPurchaseResult, setShowPurchaseResult] = useState<PurchaseResponse | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
   const config = getConfig();
   const totals = getTotals();
 
@@ -41,6 +43,20 @@ export default function POSScreen({
     if (product) {
       addToCart(product);
       setBarcode('');
+    }
+  };
+
+  // カメラスキャンボタンのハンドラ
+  const handleOpenScanner = () => {
+    setShowScanner(true);
+  };
+
+  // バーコード検出時のハンドラ
+  const handleBarcodeDetected = async (detectedBarcode: string) => {
+    console.log('Barcode detected:', detectedBarcode);
+    const product = await searchProduct(detectedBarcode);
+    if (product) {
+      addToCart(product);
     }
   };
 
@@ -101,12 +117,13 @@ export default function POSScreen({
               </div>
             </form>
 
-            {/* カメラスキャンボタン（将来実装予定） */}
+            {/* カメラスキャンボタン */}
             <button
-              className="w-full py-3 bg-green-600 text-white rounded-md hover:bg-green-700"
-              disabled
+              onClick={handleOpenScanner}
+              className="w-full py-3 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+              disabled={posState.isLoading}
             >
-              📷 カメラでスキャン（準備中）
+              📷 カメラでスキャン
             </button>
 
             {/* エラーメッセージ */}
@@ -200,6 +217,13 @@ export default function POSScreen({
           currency={config.ui_settings.currency}
         />
       )}
+
+      {/* バーコードスキャナーモーダル */}
+      <BarcodeScanner
+        isOpen={showScanner}
+        onDetected={handleBarcodeDetected}
+        onClose={() => setShowScanner(false)}
+      />
     </div>
   );
 }
@@ -302,5 +326,6 @@ function PurchaseResultModal({
     </div>
   );
 }
+
 
 
