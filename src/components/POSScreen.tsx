@@ -99,7 +99,7 @@ export default function POSScreen({
       </header>
 
       {/* メインコンテンツエリア */}
-      <div className="flex-1 overflow-y-auto pb-24">
+      <div className="flex-1 overflow-y-auto pb-4">
         {/* 商品検索エリア */}
         <div className="p-4">
           <h2 className="text-xl font-semibold text-white mb-4">商品検索</h2>
@@ -111,7 +111,7 @@ export default function POSScreen({
                 type="text"
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
-                placeholder="商品名またはバーコードを入力"
+                placeholder="バーコードを入力してEnterキーを押してください"
                 style={{ 
                   backgroundColor: '#252936',
                   borderColor: '#3f4557',
@@ -194,7 +194,7 @@ export default function POSScreen({
       {/* 合計と購入ボタン（固定） */}
       {posState.cartItems.length > 0 && (
         <div 
-          className="fixed bottom-16 left-0 right-0 border-t p-4"
+          className="fixed bottom-0 left-0 right-0 border-t p-4"
           style={{ 
             backgroundColor: '#252936',
             borderColor: '#3f4557'
@@ -216,34 +216,6 @@ export default function POSScreen({
           </button>
         </div>
       )}
-
-      {/* 底部ナビゲーションバー */}
-      <div 
-        className="fixed bottom-0 left-0 right-0 border-t"
-        style={{ 
-          backgroundColor: '#252936',
-          borderColor: '#3f4557'
-        }}
-      >
-        <div className="flex justify-around items-center py-3">
-          <button className="flex flex-col items-center gap-1 px-4 py-2">
-            <span className="text-2xl" style={{ color: '#6b7280' }}>🏠</span>
-            <span className="text-xs" style={{ color: '#6b7280' }}>ホーム</span>
-          </button>
-          <button className="flex flex-col items-center gap-1 px-4 py-2">
-            <span className="text-2xl" style={{ color: '#2563eb' }}>🔍</span>
-            <span className="text-xs" style={{ color: '#2563eb' }}>商品検索</span>
-          </button>
-          <button className="flex flex-col items-center gap-1 px-4 py-2">
-            <span className="text-2xl" style={{ color: '#6b7280' }}>📄</span>
-            <span className="text-xs" style={{ color: '#6b7280' }}>売上</span>
-          </button>
-          <button className="flex flex-col items-center gap-1 px-4 py-2">
-            <span className="text-2xl" style={{ color: '#6b7280' }}>⚙️</span>
-            <span className="text-xs" style={{ color: '#6b7280' }}>設定</span>
-          </button>
-        </div>
-      </div>
 
       {/* 購入完了モーダル */}
       {showPurchaseResult && (
