@@ -20,11 +20,11 @@ export default function LoginForm({ onLogin, isLoading, error }: LoginFormProps)
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#1a1d29' }}>
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#ffffff' }}>
       <div className="max-w-md w-full space-y-8">
         {/* タイトル */}
         <div>
-          <h1 className="text-center text-3xl font-bold text-white">
+          <h1 className="text-center text-3xl font-bold text-gray-900">
             ログイン
           </h1>
         </div>
@@ -40,11 +40,11 @@ export default function LoginForm({ onLogin, isLoading, error }: LoginFormProps)
                 type="text"
                 required
                 style={{ 
-                  backgroundColor: '#252936',
-                  borderColor: '#3f4557',
-                  color: '#9ca3af'
+                  backgroundColor: '#ffffff',
+                  borderColor: '#d1d5db',
+                  color: '#111827'
                 }}
-                className="appearance-none relative block w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-base"
+                className="appearance-none relative block w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent sm:text-base"
                 placeholder="コード"
                 value={cashierCode}
                 onChange={(e) => setCashierCode(e.target.value)}
@@ -60,11 +60,11 @@ export default function LoginForm({ onLogin, isLoading, error }: LoginFormProps)
                 type="password"
                 required
                 style={{ 
-                  backgroundColor: '#252936',
-                  borderColor: '#3f4557',
-                  color: '#9ca3af'
+                  backgroundColor: '#ffffff',
+                  borderColor: '#d1d5db',
+                  color: '#111827'
                 }}
-                className="appearance-none relative block w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-base"
+                className="appearance-none relative block w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent sm:text-base"
                 placeholder="パスワード"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -76,11 +76,11 @@ export default function LoginForm({ onLogin, isLoading, error }: LoginFormProps)
           {/* エラーメッセージ */}
           {error && (
             <div 
-              className="rounded-lg p-4 flex items-center gap-3"
-              style={{ backgroundColor: '#7f1d1d' }}
+              className="rounded-lg p-4 flex items-center gap-3 border-2"
+              style={{ backgroundColor: '#fef2f2', borderColor: '#fca5a5' }}
             >
-              <span className="text-red-300 text-xl">⚠</span>
-              <div className="text-sm text-red-200">{error}</div>
+              <span className="text-red-600 text-xl">⚠</span>
+              <div className="text-sm text-red-700">{error}</div>
             </div>
           )}
 
@@ -90,9 +90,9 @@ export default function LoginForm({ onLogin, isLoading, error }: LoginFormProps)
               type="submit"
               disabled={isLoading || !cashierCode.trim() || !password.trim()}
               style={{ 
-                backgroundColor: isLoading || !cashierCode.trim() || !password.trim() ? '#1e40af' : '#2563eb'
+                backgroundColor: '#1e40af'
               }}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-medium rounded-lg text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-base font-medium rounded-lg text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
             >
               {isLoading ? 'ログイン中...' : 'ログイン'}
             </button>
