@@ -60,9 +60,24 @@ export default function POSScreen({
     console.log('Barcode length:', detectedBarcode.length);
     console.log('Barcode characters:', detectedBarcode.split('').map((c, i) => `${i}:${c}(${c.charCodeAt(0)})`).join(' '));
     
-    // バーコードを入力欄に設定
-    setBarcode(detectedBarcode);
     setShowScanner(false);
+    
+    // 商品を検索
+    try {
+      const product = await searchProduct(detectedBarcode);
+      if (product) {
+        console.log('Product found:', product);
+        // 商品が見つかったらカートに追加
+        addToCart(product);
+      } else {
+        // 商品が見つからなかった場合は入力欄に表示
+        setBarcode(detectedBarcode);
+      }
+    } catch (error) {
+      console.error('Product search error:', error);
+      // エラー時も入力欄に表示
+      setBarcode(detectedBarcode);
+    }
   };
 
   const handlePurchase = async () => {
