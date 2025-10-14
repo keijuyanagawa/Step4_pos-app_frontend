@@ -37,6 +37,10 @@ export default function POSScreen({
 
   const handleBarcodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    await handleSearchProduct();
+  };
+
+  const handleSearchProduct = async () => {
     if (!barcode.trim()) return;
 
     const product = await searchProduct(barcode.trim());
@@ -51,22 +55,14 @@ export default function POSScreen({
   };
 
   const handleBarcodeDetected = async (detectedBarcode: string) => {
-    console.log('=== Starting Product Search ===');
+    console.log('=== Barcode Detected ===');
     console.log('Barcode value:', detectedBarcode);
     console.log('Barcode length:', detectedBarcode.length);
     console.log('Barcode characters:', detectedBarcode.split('').map((c, i) => `${i}:${c}(${c.charCodeAt(0)})`).join(' '));
     
-    try {
-      const product = await searchProduct(detectedBarcode);
-      if (product) {
-        console.log('Product found:', product);
-        addToCart(product);
-      }
-    } catch (error) {
-      console.error('Product search error:', error);
-      // エラー時にバーコード値を表示
-      setError(`商品が見つかりません (バーコード: ${detectedBarcode})`);
-    }
+    // バーコードを入力欄に設定
+    setBarcode(detectedBarcode);
+    setShowScanner(false);
   };
 
   const handlePurchase = async () => {
@@ -104,6 +100,18 @@ export default function POSScreen({
         <div className="p-4">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">商品検索</h2>
           
+          {/* カメラボタン */}
+          <button
+            onClick={handleOpenScanner}
+            type="button"
+            className="w-full mb-4 py-3 rounded-lg text-white font-semibold text-lg hover:opacity-90 flex items-center justify-center gap-2"
+            style={{ backgroundColor: '#1e40af' }}
+            disabled={posState.isLoading}
+          >
+            <span className="text-2xl">📷</span>
+            <span>バーコードをスキャンする</span>
+          </button>
+          
           {/* 検索フォーム */}
           <form onSubmit={handleBarcodeSubmit} className="mb-4">
             <div className="flex gap-2">
@@ -111,7 +119,7 @@ export default function POSScreen({
                 type="text"
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
-                placeholder="バーコードを入力してEnterキーを押してください"
+                placeholder="バーコードを入力してください"
                 style={{ 
                   backgroundColor: '#ffffff',
                   borderColor: '#d1d5db',
@@ -121,13 +129,12 @@ export default function POSScreen({
                 disabled={posState.isLoading}
               />
               <button
-                onClick={handleOpenScanner}
-                type="button"
-                className="p-3 rounded-lg text-white text-2xl hover:opacity-90"
+                type="submit"
+                className="px-6 py-3 rounded-lg text-white font-semibold hover:opacity-90"
                 style={{ backgroundColor: '#1e40af' }}
-                disabled={posState.isLoading}
+                disabled={posState.isLoading || !barcode.trim()}
               >
-                📷
+                検索
               </button>
             </div>
           </form>
@@ -135,19 +142,11 @@ export default function POSScreen({
           {/* 検索された商品の表示 */}
           {posState.lastScannedProduct && (
             <div 
-              className="p-4 rounded-lg flex items-center gap-4 mb-4 border-2"
+              className="p-4 rounded-lg mb-4 border-2"
               style={{ backgroundColor: '#f9fafb', borderColor: '#d1d5db' }}
             >
-              <div 
-                className="w-20 h-20 rounded-lg flex items-center justify-center text-4xl"
-                style={{ backgroundColor: '#e5e7eb' }}
-              >
-                👕
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">{posState.lastScannedProduct.product_name}</h3>
-                <p className="text-lg text-gray-700">¥{posState.lastScannedProduct.price_incl_tax.toLocaleString()}</p>
-              </div>
+              <h3 className="font-semibold text-gray-900">{posState.lastScannedProduct.product_name}</h3>
+              <p className="text-lg text-gray-700">¥{posState.lastScannedProduct.price_incl_tax.toLocaleString()}</p>
             </div>
           )}
 
