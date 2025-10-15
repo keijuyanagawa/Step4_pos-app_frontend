@@ -9,11 +9,8 @@ import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
   
 
 interface BarcodeScannerProps {
-
   onDetected: (barcode: string) => void;
-
   onClose: () => void;
-
   isOpen: boolean;
 
 }
