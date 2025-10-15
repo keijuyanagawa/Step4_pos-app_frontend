@@ -204,6 +204,8 @@ export const usePOS = () => {
       
       if (response.success) {
         clearCart();
+        // 商品検索結果もクリア
+        setState(prev => ({ ...prev, lastScannedProduct: null }));
         return response;
       } else {
         setError(response.message);
