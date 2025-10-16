@@ -9,6 +9,7 @@ interface BarcodeScannerProps {
   isOpen: boolean;
 }
 
+
 export default function BarcodeScanner({ onDetected, onClose, isOpen }: BarcodeScannerProps) {
  const videoRef = useRef<HTMLVideoElement>(null);
  // クリーンアップ処理のために、リーダーのインスタンスとストリームをrefで保持
